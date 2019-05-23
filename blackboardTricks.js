@@ -19,17 +19,30 @@ const myCourseList=
 ]    
 const DAYZERO="2000-1-1"
 
-function CallEndpointGetSynchronous(endpointUrl)
+function CallEndpointsGetAsynchronous(endpointUrl)
 {
-    var t = new XMLHttpRequest()
-    t.open("GET", endpointUrl, false)
-    t.send()    
-    return JSON.parse(t.response)
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", endpointUrl, true);
+    xhr.onload = function (e) {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                return JSON.parse(xhr.response);
+            } else {
+                console.error(xhr.statusText);
+                return "";
+            }
+        }
+    };
+    xhr.onerror = function (e) {
+        console.error(xhr.statusText);
+        return "";
+    };
+    xhr.send(null);    
 }
 
 function getUserId(userName)
 {
-    var r = CallEndpointGetSynchronous("/learn/api/public/v1/users?userName="+userName+"&fields=id,userName")
+    var r = CallEndpointsGetAsynchronous("/learn/api/public/v1/users?userName="+userName+"&fields=id,userName")
     let result = "not found"
     r.results.forEach(entry=>{if (userName == entry.userName) result=entry.id})
     return result
@@ -37,24 +50,24 @@ function getUserId(userName)
 
 function getUserName(userId)
 {
-    var r = CallEndpointGetSynchronous("/learn/api/public/v1/users/"+userId+"?fields=id,userName")
+    var r = CallEndpointsGetAsynchronous("/learn/api/public/v1/users/"+userId+"?fields=id,userName")
     return r.userName
 }
 
 function getCourseName(courseId)
 {
-    var r = CallEndpointGetSynchronous("/learn/api/public/v1/courses/"+courseId+"?fields=id,name")
+    var r = CallEndpointsGetAsynchronous("/learn/api/public/v1/courses/"+courseId+"?fields=id,name")
     return r.name
 }
 
 function getCoursesForId(userName)
 {
-    return CallEndpointGetSynchronous("/learn/api/public/v1/users/"+getUserId(userName)+"/courses?fields=courseId")
+    return CallEndpointsGetAsynchronous("/learn/api/public/v1/users/"+getUserId(userName)+"/courses?fields=courseId")
 }
 
 function getCoursesForIdWithNames(userName)
 {
-    var courses = CallEndpointGetSynchronous("/learn/api/public/v1/users/"+getUserId(userName)+"/courses?fields=courseId")
+    var courses = CallEndpointsGetAsynchronous("/learn/api/public/v1/users/"+getUserId(userName)+"/courses?fields=courseId")
     result=[]
     courses.results.forEach(course=>{ result.push({courseId:course.courseId, name:getCourseName(course.courseId)})});
     return result;
@@ -68,19 +81,19 @@ function logCoursesForIdWithNames(userName)
 
 function getGradeColumns(courseId)
 {
-    var r = CallEndpointGetSynchronous("/learn/api/public/v1/courses/"+courseId+"/gradebook/columns?fields=id,name")
+    var r = CallEndpointsGetAsynchronous("/learn/api/public/v1/courses/"+courseId+"/gradebook/columns?fields=id,name")
     return r.results
 }
 
 function getUserColumnGrade(courseId, columnId, userId)
 {
-    var r = CallEndpointGetSynchronous("/learn/api/public/v1/courses/"+courseId+"/gradebook/columns/"+columnId+"/users/"+userId)
+    var r = CallEndpointsGetAsynchronous("/learn/api/public/v1/courses/"+courseId+"/gradebook/columns/"+columnId+"/users/"+userId)
     return r
 }
 
 function getNumberNeedsGrading(courseId, columnId, cutOffDate=DAYZERO)
 {
-    var r = CallEndpointGetSynchronous("/learn/api/public/v1/courses/"+courseId+"/gradebook/columns/"+columnId+"/attempts?attemptStatuses=NeedsGrading")
+    var r = CallEndpointsGetAsynchronous("/learn/api/public/v1/courses/"+courseId+"/gradebook/columns/"+columnId+"/attempts?attemptStatuses=NeedsGrading")
     var result=0
     try { 
             if (r.results.length>0)
@@ -94,7 +107,7 @@ function getNumberNeedsGrading(courseId, columnId, cutOffDate=DAYZERO)
 
 function getStudentNeedsGrading(courseId, columnId, cutOffDate=DAYZERO)
 {
-    var r = CallEndpointGetSynchronous("/learn/api/public/v1/courses/"+courseId+"/gradebook/columns/"+columnId+"/attempts?attemptStatuses=NeedsGrading")
+    var r = CallEndpointsGetAsynchronous("/learn/api/public/v1/courses/"+courseId+"/gradebook/columns/"+columnId+"/attempts?attemptStatuses=NeedsGrading")
     var result=[]
     try { 
             if (r.results.length>0)
