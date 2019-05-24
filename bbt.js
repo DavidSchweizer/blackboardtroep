@@ -1,19 +1,27 @@
 function xhrSuccess() { 
-    this.callback.apply(this); 
+    this.callback.call(this); 
 }
 
 function xhrError() { 
     console.error(this.statusText); 
 }
 
-function ReturnValues(xhr)
+function ReturnValues()
 {
-    var json = JSON.parse(xhr.response);
-    return json;
+    var json = JSON.parse(this.response);
+    console.log("ReturnValues: "+json);
+    console.log("ReturnValues2: "+this.response);
+    return JSON.stringify(json);
 }
 
 function CallEndpointsGetAsynchronous(endpointUrl) 
 {
+    // fetch(endpointUrl).then(response => {
+    //     response.json().then(json => {
+
+    //     })
+    // })
+
     var xhr = new XMLHttpRequest();
     xhr.callback = ReturnValues;
     xhr.onload = xhrSuccess;
@@ -24,7 +32,8 @@ function CallEndpointsGetAsynchronous(endpointUrl)
 
 function getCourseName(courseId)
 {
-    var r = CallEndpointsGetAsynchronous("/learn/api/public/v1/courses/"+courseId+"?fields=id,name")
+    CallEndpointsGetAsynchronous("/learn/api/public/v1/courses/"+courseId+"?fields=id,name")
+    console.log(r);
     return r.name
 }
 
