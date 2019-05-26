@@ -6,34 +6,38 @@ function xhrError() {
     console.error(this.statusText); 
 }
 
+var uglyReturnValue = "";
+
 function ReturnValues()
 {
     var json = JSON.parse(this.response);
     console.log("ReturnValues: "+json);
     console.log("ReturnValues2: "+this.response);
-    return JSON.stringify(json);
+    uglyReturnValue= JSON.stringify(json);
 }
 
 function CallEndpointsGetAsynchronous(endpointUrl) 
 {
-    // fetch(endpointUrl).then(response => {
-    //     response.json().then(json => {
-
-    //     })
-    // })
-
-    var xhr = new XMLHttpRequest();
-    xhr.callback = ReturnValues;
-    xhr.onload = xhrSuccess;
-    xhr.onerror = xhrError;
-    xhr.open("GET", endpointUrl, true);
-    xhr.send(null);
+    fetch(endpointUrl)
+    .then(response => {
+        console.log(response);
+        response.json().then(json => { console.log(json);
+            uglyReturnValue = JSON.stringify(json);
+        })
+    })
 }
 
 function getCourseName(courseId)
 {
-    CallEndpointsGetAsynchronous("/learn/api/public/v1/courses/"+courseId+"?fields=id,name")
-    console.log(r);
-    return r.name
+    var result = "";
+    fetch("/learn/api/public/v1/courses/"+courseId+"?fields=id,name")
+    .then(response => {
+        response.json().then(json => 
+            { console.log(json.name);
+              result = json.name;
+              console.log("1: " + result);
+              return result;
+            })
+    })
 }
 
