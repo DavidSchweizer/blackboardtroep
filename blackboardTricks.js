@@ -19,58 +19,63 @@ const myCourseList=
 ]    
 const DAYZERO="2000-1-1"
 
-function CallEndpointsGetAsynchronous(endpointUrl)
+async function fetchJson(endpointURL)
 {
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", endpointUrl, true);
-    xhr.onload = function (e) {
-        if (xhr.readyState === 4) {
-            if (xhr.status === 200) {
-                return JSON.parse(xhr.response);
-            } else {
-                console.error(xhr.statusText);
-                return "";
-            }
-        }
-    };
-    xhr.onerror = function (e) {
-        console.error(xhr.statusText);
-        return "";
-    };
-    xhr.send(null);    
+    let response = await fetch (endpointURL);
+    let json = await response.json();
+    return json;
+}
+async function getCourseName(courseId)
+{
+    let json = await fetchJson("/learn/api/public/v1/courses/"+courseId+"?fields=id,name");
+    return json.name;
 }
 
-function getUserId(userName)
+async function getUserId(userName)
 {
-    var r = CallEndpointsGetAsynchronous("/learn/api/public/v1/users?userName="+userName+"&fields=id,userName")
     let result = "not found"
-    r.results.forEach(entry=>{if (userName == entry.userName) result=entry.id})
+    let json = await fetchJson("/learn/api/public/v1/users?userName="+userName+"&fields=id,userName")
+    json.results.forEach(entry=>{if (userName == entry.userName) result=entry.id})
     return result
 }
 
-function getUserName(userId)
+async function getUserName(userId)
 {
-    var r = CallEndpointsGetAsynchronous("/learn/api/public/v1/users/"+userId+"?fields=id,userName")
-    return r.userName
+    let result = "not found"
+    let json = await fetchJson("/learn/api/public/v1/users/"+userId+"?fields=id,userName")
+    return json.userName
 }
 
-function getCourseName(courseId)
+async function getCoursesForId(userName)
 {
-    var r = CallEndpointsGetAsynchronous("/learn/api/public/v1/courses/"+courseId+"?fields=id,name")
-    return r.name
+    let userId = await getUserId(userName);
+    let json= await fetchJson("/learn/api/public/v1/users/"+userId+"/courses?fields=courseId");
+    return json.results;
 }
 
-function getCoursesForId(userName)
+async function getCoursesForIdWithNames(userName, callback)
 {
-    return CallEndpointsGetAsynchronous("/learn/api/public/v1/users/"+getUserId(userName)+"/courses?fields=courseId")
+    console.log("start");
+    let userId = await getUserId(userName);
+    let json= await fetchJson("/learn/api/public/v1/users/"+userId+"/courses?fields=courseId");
+    let courses=[]; 
+    json.results.forEach(course=>
+                { getCourseName(course.courseId)
+                  .then(nameStr=>callback({courseId:course.courseId, name:nameStr}));
+//                                .then(nameStr=> { courses.push({courseId:course.courseId, name:nameStr}); console.log(nameStr);})
+                })
+    console.log("end");
 }
-
 function getCoursesForIdWithNames(userName)
 {
-    var courses = CallEndpointsGetAsynchronous("/learn/api/public/v1/users/"+getUserId(userName)+"/courses?fields=courseId")
-    result=[]
-    courses.results.forEach(course=>{ result.push({courseId:course.courseId, name:getCourseName(course.courseId)})});
-    return result;
+    getUserId(userName)
+    .then(userId=>{fetchJson("/learn/api/public/v1/users/"+userId+"/courses?fields=courseId")
+        .then(json=>{   let courses=[]; 
+                        json.results.forEach(course=>{ let nameStr = getCourseName(course.courseId)
+                                                                    .then(nameStr=> courses.push({courseId:course.courseId, name:nameStr}))
+                                                    }); 
+                    })
+                })    
 }
 
 function logCoursesForIdWithNames(userName)

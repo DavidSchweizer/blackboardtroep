@@ -16,28 +16,36 @@ function ReturnValues()
     uglyReturnValue= JSON.stringify(json);
 }
 
-function CallEndpointsGetAsynchronous(endpointUrl) 
+async function CallEndpointsGetAsynchronous(endpointUrl) 
 {
     fetch(endpointUrl)
-    .then(response => {
-        console.log(response);
-        response.json().then(json => { console.log(json);
-            uglyReturnValue = JSON.stringify(json);
-        })
+    .then(response => response.json())
+    .then(data => { console.log("return data: "+data.name); this.result = data.name;        
     })
 }
 
-function getCourseName(courseId)
+/*async function getCourseName(courseId)
 {
-    var result = "";
-    fetch("/learn/api/public/v1/courses/"+courseId+"?fields=id,name")
-    .then(response => {
-        response.json().then(json => 
-            { console.log(json.name);
-              result = json.name;
-              console.log("1: " + result);
-              return result;
-            })
-    })
+   fetch ("/learn/api/public/v1/courses/"+courseId+"?fields=id,name")
+   .then(response => {console.log("response"); response.json()})
+   .then(json => { console.log("data: "+ json) })
+}
+*/
+
+async function fetchJson(endpointURL)
+{
+    let response = await fetch (endpointURL);
+    let json = await response.json();
+    return json;
+}
+async function getCourseName(courseId)
+{
+    let json = await fetchJson("/learn/api/public/v1/courses/"+courseId+"?fields=id,name");
+    return json.name;
 }
 
+function test(data)
+{
+    getCourseName("_20169_1")
+    .then (result=>{ console.log("coursename: "+ result); data.push(result);})
+}
