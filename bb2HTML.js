@@ -24,6 +24,7 @@ return '<style>'+
 function GetStyleAsString()
 {
 return '<style>'+
+'h2 {font-family: Verdana, Geneva, sans-serif;}'+
 'table {font-family: Verdana, Geneva, sans-serif;}'+
 'th,td { padding-left:2px; padding-right:10px; text-align:left }'+
 'td:nth-child(3) {text-align:center}'+
@@ -32,47 +33,24 @@ return '<style>'+
 '</style>';
 }
 
-var data = [];
-
-function HTMLMyCourseListTableRowCallBack(JSONdata)
+function HTMLMyCourseListTableRowCallBack(entry, tableRef)
 {
-    return '<tr><td>'+entry.courseId+'</td><td>'+entry.name+'</td></tr>'});
+    tableRowStr = '<tr><td>'+entry.courseId+'</td><td>'+entry.name+'</td></tr>';
+    var tableRow = tableRef.insertRow();
+    tableRow.innerHTML = tableRowStr;
 }
 
-function HTMLMyCourseListWorker(JSONdata)
+function HTMLMyCourseList(Id)
 {
-    var htmlTableStr=""
-    console.log("worker + JSONdata: "+JSONdata.length);
-    JSONdata.forEach(entry=>{console.log("name: "+ entry.name);
-    htmlTableStr=htmlTableStr+'<tr><td>'+entry.courseId+'</td><td>'+entry.name+'</td></tr>'});
-    console.log("worker: "+ htmlTableStr);
-    return htmlTableStr;
-}
-
-async function HTMLMyCourseListCaller(resolve)
-{
-    console.log("caller");
-    let results = await getCoursesForIdWithNames("schweize")
-    console.log("results: " + results.length);
-    let stringetje = await resolve(results);
-    console.log("end caller " + stringetje)
-    return stringetje;
-}
-function HTMLMyCourseList()
-{
-    /*var w = window.open("");
+    var w = window.open("");
     var html1 =  
-        '<head><title>Needs Grading per Course</title>'+
+        '<head><title>Course List</title>'+
         GetStyleAsString() +
         '</head>';
-    console.log(html1);
-    w.document.head.innerHTML = html1; */
-    var html2='<body><table><tr><th>courseId</th><th>course</th></tr>';
-
-    HTMLMyCourseListCaller(HTMLMyCourseListWorker)
-    .then(resultStr=>{htmlTableStr = resultStr;console.log("in then: "+htmlTableStr);})
-    console.log("after Then");
-    //w.document.body.innerHTML = html2+htmlTableStr + '</table></body>';
+    w.document.head.innerHTML = html1; 
+    w.document.body.innerHTML= '<body><h2>Courses for ID: '+Id+'</h2><table id="CourseListTable"><tr><th>courseId</th><th>course</th></tr></table></body>';
+    var tableRef = w.document.getElementById("CourseListTable");
+    getCoursesForIdWithNames(Id, HTMLMyCourseListTableRowCallBack, tableRef);
 }
 
 function HTMLMyCourseList2(minDate=DAYZERO)

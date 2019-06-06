@@ -53,36 +53,17 @@ async function getCoursesForId(userName)
     return json.results;
 }
 
-async function getCoursesForIdWithNames(userName, callback)
+async function getCoursesForIdWithNames(userName, callback, callbackstr)
 {
-    console.log("start");
     let userId = await getUserId(userName);
     let json= await fetchJson("/learn/api/public/v1/users/"+userId+"/courses?fields=courseId");
     let courses=[]; 
     json.results.forEach(course=>
                 { getCourseName(course.courseId)
-                  .then(nameStr=>callback({courseId:course.courseId, name:nameStr}));
-//                                .then(nameStr=> { courses.push({courseId:course.courseId, name:nameStr}); console.log(nameStr);})
+                  .then(nameStr=>callback({courseId:course.courseId, name:nameStr}, callbackstr));
                 })
-    console.log("end");
 }
-function getCoursesForIdWithNames(userName)
-{
-    getUserId(userName)
-    .then(userId=>{fetchJson("/learn/api/public/v1/users/"+userId+"/courses?fields=courseId")
-        .then(json=>{   let courses=[]; 
-                        json.results.forEach(course=>{ let nameStr = getCourseName(course.courseId)
-                                                                    .then(nameStr=> courses.push({courseId:course.courseId, name:nameStr}))
-                                                    }); 
-                    })
-                })    
-}
-
-function logCoursesForIdWithNames(userName)
-{
-    var courses = getCoursesForIdWithNames(userName)
-    courses.forEach(course=>{ console.log(course.courseId + " \t" + course.name)})
-}
+/* tot hier werkt t */
 
 function getGradeColumns(courseId)
 {
@@ -177,11 +158,3 @@ function getAllNumberNeedsGrading(userName)
     r = getCoursesForId(userName)
     return getNumberNeedsGradingForCourseList(r.results)
 }
-
-function ViewMyCourseList(cutOffDate=DAYZERO)
-{
-    var r = getMyCourseListNeedsGrading(cutOffDate)
-    console.log("course\tcolumn\tnumber")
-    r.forEach(entry=>{console.log(entry.course + "\t" + entry.column +"\t" + entry.number)})
-}
-
