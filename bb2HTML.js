@@ -1,28 +1,5 @@
 function GetStyleAsString()
 {
-/*
-table { 
-    font-family: Verdana, Geneva, sans-serif;
-}
-th,td {
-    padding-left:2px;
-    padding-right:10px;
-    text-align:left
-}
-td:nth-child(3) {text-align:center}
-tr:nth-child(odd) {background-color:#FFF8DC;}
-tr:nth-child(even) {background-color:#ADD8E6;}
-*/
-return '<style>'+
-'table {font-family: Verdana, Geneva, sans-serif;}'+
-'th,td { padding-left:2px; padding-right:10px; text-align:left }'+
-'td:nth-child(3) {text-align:center}'+
-'tr:nth-child(odd) {background-color:#FFF8DC;}'+
-'tr:nth-child(even) {background-color:#ADD8E6;}' + 
-'</style>';
-}
-function GetStyleAsString()
-{
 return '<style>'+
 'h2 {font-family: Verdana, Geneva, sans-serif;}'+
 'table {font-family: Verdana, Geneva, sans-serif;}'+

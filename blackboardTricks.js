@@ -21,75 +21,113 @@ const DAYZERO="2000-1-1"
 
 async function fetchJson(endpointURL)
 {
-    let response = await fetch (endpointURL);
-    let json = await response.json();
-    return json;
+    try {
+        let response = await fetch (endpointURL);
+        let json = await response.json();
+        return json;
+    }
+    catch(err) {
+        return undefined;
+    }
 }
+
 async function getCourseName(courseId)
 {
-    let json = await fetchJson("/learn/api/public/v1/courses/"+courseId+"?fields=id,name");
+    let json = await fetchJson(endPointURLgetCourseName(courseId));
     return json.name;
 }
 
 async function getUserId(userName)
 {
-    let result = "not found"
-    let json = await fetchJson("/learn/api/public/v1/users?userName="+userName+"&fields=id,userName")
-    json.results.forEach(entry=>{if (userName == entry.userName) result=entry.id})
-    return result
+    let result = "not found";
+    let json = await fetchJson(endPointURLgetUserId(userName));
+    json.results.forEach(entry=>{if (userName == entry.userName) result=entry.id});
+    return result;
 }
 
 async function getUserName(userId)
 {
-    let result = "not found"
-    let json = await fetchJson("/learn/api/public/v1/users/"+userId+"?fields=id,userName")
-    return json.userName
+    let json = await fetchJson(endPointURLgetUserName(userId));
+    return json.userName;
 }
 
 async function getCoursesForId(userName)
 {
-    let userId = await getUserId(userName);
-    let json= await fetchJson("/learn/api/public/v1/users/"+userId+"/courses?fields=courseId");
+    let json = await fetchJson(endPointURLgetCoursesForId(await getUserId(userName)));
     return json.results;
 }
 
 async function getCoursesForIdWithNames(userName, callback, callbackstr)
 {
-    let userId = await getUserId(userName);
-    let json= await fetchJson("/learn/api/public/v1/users/"+userId+"/courses?fields=courseId");
-    let courses=[]; 
+    let json = await fetchJson(endPointURLgetCoursesForId(await getUserId(userName)));
     json.results.forEach(course=>
                 { getCourseName(course.courseId)
                   .then(nameStr=>callback({courseId:course.courseId, name:nameStr}, callbackstr));
-                })
+                });
 }
-/* tot hier werkt t */
 
-function getGradeColumns(courseId)
+async function getGradeAttemptsColumns(courseId)
 {
-    var r = CallEndpointsGetAsynchronous("/learn/api/public/v1/courses/"+courseId+"/gradebook/columns?fields=id,name")
-    return r.results
+    function _filterGradingTypeIsAttempts(column)
+    {
+        try {return column.grading.type == "Attempts";}
+        catch(err) {return false;}
+    }
+
+    let json = await fetchJson(endPointURLgetGradeAttemptsColumns(courseId));
+    try {
+        return json.results.filter(_filterGradingTypeIsAttempts);
+    }
+    catch(err) {
+        return undefined;
+    }
 }
+
+async function getNumberNeedsGrading(courseId, columnId, cutOffDate=DAYZERO)
+{
+    function _filterEntryCreatedOnOrAfter(attempt)
+    {
+        try { return attempt.created >= cutOffDate; }
+        catch(err) { return false;}
+    }
+
+    let json = await fetchJson(endPointURLgetNumberNeedsGrading(courseId, columnId));
+    try { return json.results.filter(_filterEntryCreatedOnOrAfter).length; }
+    catch(err) { return 0; }
+}
+
+async function getNeedsGradingForCourse(courseId, cutOffDate=DAYZERO)
+{
+    let courseName = await getCourseName(courseId);
+    let columns = await getGradeAttemptsColumns(courseId);
+    var results=[];
+    try 
+    {
+        columns.forEach(entry=>
+            {   getNumberNeedsGrading(courseId, entry.id, cutOffDate)
+                .then(needsGrading=>{
+                    if (needsGrading>0) 
+                    {
+			            results.push({courseId:courseId, course:courseName, column:entry.name, number:needsGrading});
+                    }
+                })
+            })				
+    }
+    catch(err)
+    {
+        return [];
+    }
+    return results;
+}
+
+/* tot hier werkt t */
 
 function getUserColumnGrade(courseId, columnId, userId)
 {
-    var r = CallEndpointsGetAsynchronous("/learn/api/public/v1/courses/"+courseId+"/gradebook/columns/"+columnId+"/users/"+userId)
+    var r = ("/learn/api/public/v1/courses/"+courseId+"/gradebook/columns/"+columnId+"/users/"+userId)
     return r
 }
 
-function getNumberNeedsGrading(courseId, columnId, cutOffDate=DAYZERO)
-{
-    var r = CallEndpointsGetAsynchronous("/learn/api/public/v1/courses/"+courseId+"/gradebook/columns/"+columnId+"/attempts?attemptStatuses=NeedsGrading")
-    var result=0
-    try { 
-            if (r.results.length>0)
-            {
-                r.results.forEach(entry=>{if (entry.created >= cutOffDate) result++})
-            }
-            return result
-        }
-    catch(err) { return 0 }
-}
 
 function getStudentNeedsGrading(courseId, columnId, cutOffDate=DAYZERO)
 {
@@ -113,7 +151,7 @@ function getNeedsGradingForCourse(courseId, cutOffDate=DAYZERO)
     var courseName = getCourseName(courseId)
     console.log("course: "+ courseName + " ("+courseId+")")
     result = []
-    var columns=getGradeColumns(courseId)
+    var columns=getGradeAttemptsColumns(courseId)
     if (!!columns) {
         columns.forEach(entry=>{ needsGrading = getNumberNeedsGrading(courseId, entry.id, cutOffDate); 
 		    					 if (needsGrading>0) {
