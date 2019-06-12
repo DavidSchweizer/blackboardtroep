@@ -4,7 +4,7 @@ function endPointURLgetCourseName(courseId)
 {
    return APIroot + "courses/"+courseId+"?fields=id,name";
 }
-function endpointURLgetUserId(userName)
+function endPointURLgetUserId(userName)
 {
     return APIroot + "users?userName="+userName+"&fields=id,userName";
 }
@@ -23,4 +23,8 @@ function endPointURLgetGradeAttemptsColumns(courseId)
 function endPointURLgetNumberNeedsGrading(courseId, columnId)
 {
     return APIroot + "courses/"+courseId+"/gradebook/columns/"+columnId+"/attempts?attemptStatuses=NeedsGrading";
+}
+function endPointURLgetUserColumnGrade(courseId, columnId, userId)
+{
+   return APIroot + "courses/"+courseId+"/gradebook/columns/"+columnId+"/users/"+userId;
 }

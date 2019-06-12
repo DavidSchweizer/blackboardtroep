@@ -19,15 +19,16 @@ function HTMLMyCourseListTableRowCallBack(entry, tableRef)
 
 function HTMLMyCourseList(Id)
 {
+    const CourseListTable = "CourseListTable";
     var w = window.open("");
     var html1 =  
         '<head><title>Course List</title>'+
         GetStyleAsString() +
         '</head>';
     w.document.head.innerHTML = html1; 
-    w.document.body.innerHTML= '<body><h2>Courses for ID: '+Id+'</h2><table id="CourseListTable"><tr><th>courseId</th><th>course</th></tr></table></body>';
-    var tableRef = w.document.getElementById("CourseListTable");
-    getCoursesForIdWithNames(Id, HTMLMyCourseListTableRowCallBack, tableRef);
+    w.document.body.innerHTML= '<body><h2>Courses for ID: '+Id+'</h2><table id="'+ CourseListTable + '"><tr><th>courseId</th><th>course</th></tr></table></body>';
+    var tableRef = w.document.getElementById(CourseListTable);
+    getCoursesForIdInformation(Id, HTMLMyCourseListTableRowCallBack, tableRef);
 }
 
 function HTMLMyCourseList2(minDate=DAYZERO)
