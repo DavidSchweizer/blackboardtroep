@@ -20,7 +20,7 @@ function endPointURLgetGradeAttemptsColumns(courseId)
 {
     return APIroot + "courses/"+courseId+"/gradebook/columns?fields=id,name,grading.type";
 }
-function endPointURLgetNumberNeedsGrading(courseId, columnId)
+function endPointURLgetNeedsGradingInfoForColumn(courseId, columnId)
 {
     return APIroot + "courses/"+courseId+"/gradebook/columns/"+columnId+"/attempts?attemptStatuses=NeedsGrading";
 }
