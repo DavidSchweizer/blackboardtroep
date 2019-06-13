@@ -109,11 +109,36 @@ async function getNeedsGradingInfoForColumn(courseId, columnData, cutOffDate=DAY
 
 async function getNeedsGradingInfoForCourse(courseId, cutOffDate=DAYZERO)
 {
-    function _filterEmpties(columnInfo)
+    function _CreateColumnObject(columnInfo)
     {
-        try { return columnInfo.length > 0; }
-        catch(err) { return false;}
+        if (columnInfo.length > 0)
+        { 
+            let students=[];
+            columnInfo.forEach(studentInfo=>
+                {students.push({studentId:studentInfo.studentId, student:studentInfo.student})});
+            return { column:columnInfo[0].column, 
+                columnName:columnInfo[0].columnName, 
+                needsGrading: columnInfo.length, 
+                students:students};
+        }
+        else return undefined;
     }
+    function _CreateCourseObject(courseRawData)
+    {
+        let courseData = { course:undefined, totalNeedsGrading:0, columns:[]};
+        courseRawData.forEach(columnInfo=>{ 
+            if (courseData.course == undefined && columnInfo.length > 0)
+                courseData.course = columnInfo[0].course;
+            let columnData = _CreateColumnObject(columnInfo);            
+            if (columnData != undefined && columnData.needsGrading > 0)
+            {
+                courseData.columns.push(columnData);
+                courseData.totalNeedsGrading += columnData.needsGrading;
+            }
+        });
+        return courseData;
+    }  
+// start main function getNeedsGradingInfoForCourse
     let columnDatas = await getGradeAttemptsColumns(courseId);
     try {
         var promises = [];
@@ -122,16 +147,16 @@ async function getNeedsGradingInfoForCourse(courseId, cutOffDate=DAYZERO)
             promises.push(promise); 
             };
         let allInfo = await Promise.all(promises);
-        return allInfo.filter(_filterEmpties);
+        return _CreateCourseObject(allInfo); 
     }
-    catch(err){return [];};
+    catch(err){return undefined;};
 }
 
 async function getNeedsGradingForCourse(courseId, cutOffDate=DAYZERO)
 {
-    let columnInfos = await getNeedsGradingInfoForCourse(courseId, cutOffDate);
+    let gradingInfo = await getNeedsGradingInfoForCourse(courseId, cutOffDate);
     var result = 0;
-    try { columnInfos.forEach(columnInfo=>{result += columnInfo.length; }) }
+    try { return gradingInfo.needsGrading; }
     catch(err) {}
     return result;
 }
@@ -153,29 +178,16 @@ async function getNeedsGradingForCourseList(courseList, cutOffDate=DAYZERO)
 
 async function getNeedsGradingInfoForCourseList(courseList, cutOffDate=DAYZERO)
 {
-    let rawData = [];
+    let allCourses = [];
     for (let i = 0; i < courseList.length; i++)
     {
         let course = courseList[i];
         let courseResults = await getNeedsGradingInfoForCourse(course.courseId, cutOffDate);
-        if (courseResults.length > 0)
+        if (courseResults != undefined && courseResults.totalNeedsGrading > 0)
         {
-            rawData.push(courseResults);
+            courseResults.courseName = course.courseName;
+            allCourses.push(courseResults);
         }
     }
-    let results = [];
-    rawData.forEach(courseRawData=>
-        {
-            let courseData = {course:courseRawData[0][0].course, totalNeedsGrading:0, columns:[]};
-            courseRawData.forEach(courseColumn=>{
-                let students=[];
-                courseColumn.forEach(
-                    studentInfo=>{students.push({studentId:studentInfo.studentId, student:studentInfo.student})});
-                let columnData={column:courseColumn[0].column, columnName:courseColumn[0].columnName, needsGrading: courseColumn.length, students:students};
-                courseData.columns.push(columnData);
-                courseData.totalNeedsGrading += columnData.needsGrading;
-            });
-            results.push(courseData);
-        });
-    return results;
+    return allCourses;
 }
