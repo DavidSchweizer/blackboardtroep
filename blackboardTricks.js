@@ -18,176 +18,165 @@ const myCourseList=
 ,	{courseId: "_21754_1", courseName: "Security - Jaar 1 - VT - 2018/2019"}
 ];
 const DAYZERO="2000-1-1"
+    function formatDate(dateString) 
+    {
+        var date = new Date(dateString);
+        var hours = date.getHours();
+        var minutes = date.getMinutes();
+        minutes = minutes < 10 ? '0'+minutes : minutes;
+        var strTime = hours + ':' + minutes;
+        return date.getDate() + "-" + (1+date.getMonth()) + "-" + date.getFullYear() + "  " + strTime;
+    }
 
-async function fetchJson(endpointURL)
-{
-    try {
-        let response = await fetch (endpointURL);
-        if (!response.ok)
+    async function fetchJson(endpointURL)
+    {
+        try {
+            let response = await fetch (endpointURL);
+            if (!response.ok)
+                return undefined;
+            let json = await response.json();
+            return json;
+        }
+        catch(err) {
             return undefined;
-        let json = await response.json();
-        return json;
-    }
-    catch(err) {
-        return undefined;
-    }
-}
-
-async function getCourseName(courseId)
-{
-    let myIndex = myCourseList.map(function(e) { return e.courseId; }).indexOf(courseId);
-    if (myIndex == -1)
-    {
-        let json = await fetchJson(endPointURLgetCourseName(courseId));
-        return json.name;
-    }
-    else 
-        return myCourseList[myIndex].courseName;
-}
-
-async function getUserId(userName)
-{
-    let result = "not found";
-    let json = await fetchJson(endPointURLgetUserId(userName));
-    json.results.forEach(user=>{if (userName == user.userName) result=user.id});
-    return result;
-}
-
-async function getUserName(userId)
-{
-    let json = await fetchJson(endPointURLgetUserName(userId));
-    return json.userName;
-}
-
-async function getCoursesForId(userName)
-{
-    let json = await fetchJson(endPointURLgetCoursesForId(await getUserId(userName)));
-    return json.results;
-}
-
-async function getGradeAttemptsColumns(courseId)
-{
-    function _filterGradingTypeIsAttempts(column)
-    {
-        try {return column.grading.type == "Attempts";}
-        catch(err) {return false;}
-    }
-
-    let json = await fetchJson(endPointURLgetGradeAttemptsColumns(courseId));
-    try {
-        return json.results.filter(_filterGradingTypeIsAttempts);
-    }
-    catch(err) {
-        return undefined;
-    }
-}
-
-async function getUserColumnGrade(courseId, columnId, userId)
-{
-    return await fetchJson(endPointURLgetUserColumnGrade(courseId, columnId, userId));
-}
-
-async function getNeedsGradingInfoForColumn(courseId, columnData, cutOffDate=DAYZERO)
-{
-    function _filterEntryCreatedOnOrAfter(attempt)
-    {
-        try { return attempt.created >= cutOffDate; }
-        catch(err) { return false;}
-    }
-    let json = await fetchJson(endPointURLgetNeedsGradingInfoForColumn(courseId, columnData.id));
-    var result=[]
-    try { 
-            json.results.filter(_filterEntryCreatedOnOrAfter).                
-            forEach(student=>{
-                    getUserName(student.userId)
-                    .then(userName=>{result.push({course: courseId, column: columnData.id, columnName: columnData.name, studentId: student.userId, studentId: student.userId, student:userName});})
-                    })
-            return result;
         }
-    catch(err) { return [];}
-}
-
-async function getNeedsGradingInfoForCourse(courseId, cutOffDate=DAYZERO)
-{
-    function _CreateColumnObject(columnInfo)
-    {
-        if (columnInfo.length > 0)
-        { 
-            let students=[];
-            columnInfo.forEach(studentInfo=>
-                {students.push({studentId:studentInfo.studentId, student:studentInfo.student})});
-            return { column:columnInfo[0].column, 
-                columnName:columnInfo[0].columnName, 
-                needsGrading: columnInfo.length, 
-                students:students};
-        }
-        else return undefined;
     }
-    function _CreateCourseObject(courseRawData)
+
+    async function getCourseName(courseId)
     {
-        let courseData = { course:undefined, totalNeedsGrading:0, columns:[]};
-        courseRawData.forEach(columnInfo=>{ 
-            if (courseData.course == undefined && columnInfo.length > 0)
-                courseData.course = columnInfo[0].course;
-            let columnData = _CreateColumnObject(columnInfo);            
-            if (columnData != undefined && columnData.needsGrading > 0)
-            {
-                courseData.columns.push(columnData);
-                courseData.totalNeedsGrading += columnData.needsGrading;
+        let myIndex = myCourseList.map(function(e) { return e.courseId; }).indexOf(courseId);
+        if (myIndex == -1)
+        {
+            let json = await fetchJson(endPointURLgetCourseName(courseId));
+            return json.name;
+        }
+        else 
+            return myCourseList[myIndex].courseName;
+    }
+
+    async function getUserId(userName)
+    {
+        let result = "not found";
+        let json = await fetchJson(endPointURLgetUserId(userName));
+        json.results.forEach(user=>{if (userName == user.userName) result=user.id});
+        return result;
+    }
+
+    async function getUserName(userId)
+    {
+        let json = await fetchJson(endPointURLgetUserName(userId));
+        let result = json.name.given + " ";
+        if (json.name.middle != undefined)
+            result  = result + json.name.middle + " ";
+        return result + json.name.family;
+    }
+
+    async function getCoursesForId(userName)
+    {
+        let json = await fetchJson(endPointURLgetCoursesForId(await getUserId(userName)));
+        return json.results;
+    }
+
+    async function getGradeAttemptsColumns(courseId)
+    {
+        function _filterGradingTypeIsAttempts(column)
+        {
+            try {return column.grading.type == "Attempts";}
+            catch(err) {return false;}
+        }
+
+        let json = await fetchJson(endPointURLgetGradeAttemptsColumns(courseId));
+        try {   
+            return json.results.filter(_filterGradingTypeIsAttempts);
+        }
+        catch(err) {
+            return undefined;
+        }
+    }
+
+    async function getNeedsGradingInfoForColumn(courseId, columnData, cutOffDate=DAYZERO)
+    {
+        function _filterEntryCreatedOnOrAfter(attempt)
+        {
+            try { return attempt.created >= cutOffDate; }
+            catch(err) { return false;}
+        }
+        let json = await fetchJson(endPointURLgetNeedsGradingInfoForColumn(courseId, columnData.id));
+        var result=[]
+        try { 
+                json.results.filter(_filterEntryCreatedOnOrAfter).                
+                forEach(studentDetail=>{
+                    result.push({course: courseId, column: columnData.id, columnName: columnData.name, studentId: studentDetail.userId, created: studentDetail.created});
+                });
+                return result.sort((a,b)=>{return new Date(b.created) - new Date(a.created);});
             }
-        });
-        return courseData;
-    }  
-// start main function getNeedsGradingInfoForCourse
-    let columnDatas = await getGradeAttemptsColumns(courseId);
-    try {
-        var promises = [];
-        for (let i = 0; i < columnDatas.length; i++) { 
-            let promise = await getNeedsGradingInfoForColumn(courseId, columnDatas[i], cutOffDate);        
-            promises.push(promise); 
-            };
-        let allInfo = await Promise.all(promises);
-        return _CreateCourseObject(allInfo); 
+        catch(err) { console.log("Error: " + err); return [];}
     }
-    catch(err){return undefined;};
-}
 
-async function getNeedsGradingForCourse(courseId, cutOffDate=DAYZERO)
-{
-    let gradingInfo = await getNeedsGradingInfoForCourse(courseId, cutOffDate);
-    var result = 0;
-    try { return gradingInfo.needsGrading; }
-    catch(err) {}
-    return result;
-}
-
-async function getNeedsGradingForCourseList(courseList, cutOffDate=DAYZERO)
-{
-    var results = [];
-    for (let i = 0; i < courseList.length; i++)
+    async function getNeedsGradingInfoForCourse(courseId, cutOffDate=DAYZERO)
     {
-        let course = courseList[i];
-        let number = await getNeedsGradingForCourse(course.courseId, cutOffDate);
-        if (number > 0)
+        function _CreateColumnObject(columnInfo)
         {
-            results.push({course:course.courseId, needsGrading:number});
-        }
-    }
-    return results;
-}
+            async function _CreateStudentDetail(StudentDetail, studentDetails)
+            {
+                studentName = await getUserName(StudentDetail.studentId);
+                studentDetails.push({studentId:StudentDetail.studentId, created:formatDate(StudentDetail.created), student:studentName})
+            }
 
-async function getNeedsGradingInfoForCourseList(courseList, cutOffDate=DAYZERO)
-{
-    let allCourses = [];
-    for (let i = 0; i < courseList.length; i++)
-    {
-        let course = courseList[i];
-        let courseResults = await getNeedsGradingInfoForCourse(course.courseId, cutOffDate);
-        if (courseResults != undefined && courseResults.totalNeedsGrading > 0)
-        {
-            courseResults.courseName = course.courseName;
-            allCourses.push(courseResults);
+            let studentDetails=[];
+            if (columnInfo.length > 0)
+            { 
+                columnInfo.forEach(StudentDetail=>{_CreateStudentDetail(StudentDetail, studentDetails)});
+                return { column:columnInfo[0].column, 
+                    columnName:columnInfo[0].columnName, 
+                    needsGrading: columnInfo.length, 
+                    studentDetails:studentDetails};
+            }
+            else return undefined;
         }
+        function _CreateCourseObject(courseRawData)
+        {
+            let courseData = { course:undefined, totalNeedsGrading:0, columns:[]};
+            courseRawData.forEach(columnInfo=>{ 
+                if (courseData.course == undefined && columnInfo.length > 0)
+                    courseData.course = columnInfo[0].course;
+                let columnData = _CreateColumnObject(columnInfo);            
+                if (columnData != undefined && columnData.needsGrading > 0)
+                {
+                    courseData.columns.push(columnData);
+                    courseData.totalNeedsGrading += columnData.needsGrading;
+                }
+            });
+            return courseData;
+        }  
+    // start main function getNeedsGradingInfoForCourse
+        let columnDatas = await getGradeAttemptsColumns(courseId);
+        try {
+            var promises = [];
+            for (let i = 0; i < columnDatas.length; i++) { 
+                let promise = await getNeedsGradingInfoForColumn(courseId, columnDatas[i], cutOffDate);        
+                promises.push(promise); 
+                };
+            let allInfo = await Promise.all(promises);
+            return _CreateCourseObject(allInfo); 
+        }
+        catch(err){return undefined;};
     }
-    return allCourses;
-}
+
+    async function getNeedsGradingInfoForCourseList(courseList=myCourseList, cutOffDate=DAYZERO)
+    {
+        let allCourses = [];
+        for (let i = 0; i < courseList.length; i++)
+        {
+            let course = courseList[i];
+            let courseResults = await getNeedsGradingInfoForCourse(course.courseId, cutOffDate);
+            if (courseResults != undefined && courseResults.totalNeedsGrading > 0)
+            {
+                courseResults.courseName = course.courseName;
+                console.log("found: " + courseResults.courseName + " (" + courseResults.totalNeedsGrading + ")");
+                allCourses.push(courseResults);
+            }
+        }
+        console.log("Ready");
+        return allCourses;
+    }

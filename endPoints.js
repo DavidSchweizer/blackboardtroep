@@ -10,7 +10,7 @@ function endPointURLgetUserId(userName)
 }
 function endPointURLgetUserName(userId)
 {
-    return APIroot + "users/"+userId+"?fields=id,userName";
+    return APIroot + "users/"+userId+"?fields=id,name.given,name.middle,name.family";
 }
 function endPointURLgetCoursesForId(userId)
 {
