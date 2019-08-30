@@ -28,36 +28,36 @@ async function patchJson(endpointURL, patchJson)
         return undefined;
     }
 }
-function endPointURLgetCourseName(courseId)
+function getURLforCourseName(courseId)
 {
 return APIroot + "courses/"+courseId+"?fields=id,name";
 }
-function endPointURLgetUserId(userName)
+function getURLforUserId(userName)
 {
     return APIroot + "users?userName="+userName+"&fields=id,userName";
 }
-function endPointURLgetUserName(userId)
+function getURLforUserName(userId)
 {
     return APIroot + "users/"+userId+"?fields=id,name.given,name.middle,name.family";
 }
-function endPointURLgetCoursesForId(userId)
+function getURLforCoursesForId(userId)
 {
     return APIroot + "users/"+userId+"/courses?fields=courseId,courseRoleId"; 
 }
-function endPointURLgetGradeAttemptsColumns(courseId)
+function getURLforGradeAttemptsColumns(courseId)
 {
     return APIroot + "courses/"+courseId+"/gradebook/columns?fields=id,name,grading.type";
 }
-function endPointURLgetNeedsGradingInfoForColumn(courseId, columnId)
+function getURLforNeedsGradingInfoForColumn(courseId, columnId)
 {
     return APIroot + "courses/"+courseId+"/gradebook/columns/"+columnId+"/attempts?attemptStatuses=NeedsGrading";
 }
-function endPointURLgetUserColumnGrade(courseId, columnId, userId)
+function getURLforUserColumnGrade(courseId, columnId, userId)
 {
     return APIroot + "courses/"+courseId+"/gradebook/columns/"+columnId+"/users/"+userId;
 }
 
-function endPointURLgetUserColumnGradeAttempt(courseId, columnId, attemptId)
+function getURLforUserColumnGradeAttempt(courseId, columnId, attemptId)
 {
     return APIroot + "courses/"+courseId+"/gradebook/columns/"+columnId+"/attempts/"+attemptId;
 }
