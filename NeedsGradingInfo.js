@@ -1,30 +1,6 @@
-async function getNeedsGradingInfoForCourseList(courseList=myCourseList, cutOffDate=DAYZERO)
-{
-    let allCourses = [];
-    for (let i = 0; i < courseList.length; i++)
-    {
-        let course = courseList[i];
-        console.log(course.courseName);
-        let courseResults = await getNeedsGradingInfoForCourse(course.courseId, cutOffDate);
-        if (courseResultsIsNotEmpty(courseResults))
-        {
-            courseResults.courseName = course.courseName;
-            console.log("found: " + courseResults.courseName + " (" + courseResults.totalNeedsGrading + ")");
-            allCourses.push(courseResults);
-        }
-    }
-    console.log("Ready");
-    return allCourses;
-}
-
-function courseResultsIsNotEmpty(courseResults)
-{
-    return courseResults != undefined && courseResults.totalNeedsGrading > 0;
-}
-
 /***
  * 
- * object structure of returned (promised) object:
+ * object structure of returned course grading objects:
  * 
  * .course: course ID
  * .courseName: course description
@@ -46,6 +22,29 @@ function courseResultsIsNotEmpty(courseResults)
  *              (note: the sorting is not perfect for some reason)
  * 
  ***/
+async function getNeedsGradingInfoForCourseList(courseList=myCourseList, cutOffDate=DAYZERO)
+{
+    let allCourses = [];
+    for (let i = 0; i < courseList.length; i++)
+    {
+        let course = courseList[i];
+        console.log(course.courseName);
+        let courseResults = await getNeedsGradingInfoForCourse(course.courseId, cutOffDate);
+        if (courseResultsIsNotEmpty(courseResults))
+        {
+            courseResults.courseName = course.courseName;
+            console.log("found: " + courseResults.courseName + " (" + courseResults.totalNeedsGrading + ")");
+            allCourses.push(courseResults);
+        }
+    }
+    console.log("Ready");
+    return allCourses;
+    function courseResultsIsNotEmpty(courseResults)
+    {
+        return courseResults != undefined && courseResults.totalNeedsGrading > 0;
+    }
+}
+
 async function getNeedsGradingInfoForCourse(courseId, cutOffDate=DAYZERO)
 {
     let columnDatas = await getGradeAttemptsColumns(courseId);
@@ -154,26 +153,6 @@ async function getGradeAttemptsColumns(courseId)
     }
 }
 
-async function getCourseName(courseId)
-{
-    let myIndex = findCourseIDinCourseList(courseId);
-    if (IDisInCourseList(myIndex))
-    {
-        let json = await fetchJson(getURLforCourseName(courseId));
-        return json.name;
-    }
-    else 
-        return myCourseList[myIndex].courseName;
-    function IDisInCourseList(index)
-    {
-        return index != -1;
-    }
-    function findCourseIDinCourseList(courseId)
-    {
-       return myCourseList.map(function(e) { return e.courseId; }).indexOf(courseId);
-    }         
-}
-
 async function getUserId(userName)
 {
     let result = "not found";
@@ -184,8 +163,6 @@ async function getUserId(userName)
 
 async function getUserName(userId)
 {
-    dit werkt niet goed als de user niet bestaat (404 error)
-
     try {
         let json = await fetchJson(getURLforUserName(userId));
         let result = json.name.given + " ";
@@ -195,18 +172,6 @@ async function getUserName(userId)
     }
     catch(err)
     {
-        return undefined;
-    }
-}
-
-async function getCoursesForId(userName)
-{
-    try {
-        let json = await fetchJson(getURLforCoursesForId(await getUserId(userName)));
-        return json.results;
-    }
-    catch(err)
-    {
-        return [];
+        return "unknown";
     }
 }

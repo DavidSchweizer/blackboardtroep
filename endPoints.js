@@ -2,32 +2,21 @@ async function fetchJson(endpointURL)
 {
     try {
         let response = await fetch (endpointURL);
-        if (!response.ok)
-            return undefined;
+        if (IsPageNotFoundOrMaybeOtherError(response))
+           return undefined;
         let json = await response.json();
         return json;
     }
     catch(err) {
         return undefined;
+    }
+
+    function IsPageNotFoundOrMaybeOtherError(response)
+    {
+        return !response.ok;
     }
 }
 
-async function patchJson(endpointURL, patchJson)
-/* kan niet werken omdat Blackboard daar geen toegang voor biedt zonder registratie */
-{
-    try {
-        var x=new XMLHttpRequest();
-        x.open("PATCH", "/");
-        let response = await fetch (endpointURL);
-        if (!response.ok)
-            return undefined;
-        let json = await response.json();
-        return json;
-    }
-    catch(err) {
-        return undefined;
-    }
-}
 function getURLforCourseName(courseId)
 {
 return APIroot + "courses/"+courseId+"?fields=id,name";
@@ -56,12 +45,10 @@ function getURLforUserColumnGrade(courseId, columnId, userId)
 {
     return APIroot + "courses/"+courseId+"/gradebook/columns/"+columnId+"/users/"+userId;
 }
-
 function getURLforUserColumnGradeAttempt(courseId, columnId, attemptId)
 {
     return APIroot + "courses/"+courseId+"/gradebook/columns/"+columnId+"/attempts/"+attemptId;
 }
-
 function BBURLcourseNeedsGrading(courseId)
 {
     return BBroot + "gradebook/do/instructor/viewNeedsGrading?course_id="+courseId;
