@@ -1,6 +1,6 @@
 /***
  * 
- * object structure of returned course grading objects:
+ * JSON object structure of returned course grading objects:
  * 
  * .course: course ID
  * .courseName: course description
@@ -27,18 +27,31 @@ async function getNeedsGradingInfoForCourseList(courseList=myCourseList, cutOffD
     let allCourses = [];
     for (let i = 0; i < courseList.length; i++)
     {
-        let course = courseList[i];
-        console.log(course.courseName);
-        let courseResults = await getNeedsGradingInfoForCourse(course.courseId, cutOffDate);
+        console.log(courseList[i].courseName);
+        let courseResults = await getResultsForCourse(courseList[i], cutOffDate);
         if (courseResultsIsNotEmpty(courseResults))
         {
-            courseResults.courseName = course.courseName;
             console.log("found: " + courseResults.courseName + " (" + courseResults.totalNeedsGrading + ")");
-            allCourses.push(courseResults);
+            allCourses.push(courseResults);        
         }
     }
     console.log("Ready");
     return allCourses;
+
+    function courseResultsIsNotEmpty(courseResults)
+    { return courseResults != undefined; }    
+}
+
+async function getResultsForCourse(course, cutOffDate)
+{
+    let courseResults = await getNeedsGradingInfoForCourse(course.courseId, cutOffDate);
+    if (courseResultsIsNotEmpty(courseResults))
+    {
+        courseResults.courseName = course.courseName;
+        return courseResults;
+    }
+    else return undefined;
+
     function courseResultsIsNotEmpty(courseResults)
     {
         return courseResults != undefined && courseResults.totalNeedsGrading > 0;
@@ -49,15 +62,15 @@ async function getNeedsGradingInfoForCourse(courseId, cutOffDate=DAYZERO)
 {
     let columnDatas = await getGradeAttemptsColumns(courseId);
     try {
-        let CourseGradingInfoForAllColumns = [];
+        let courseGradingInfoForAllColumns = [];
         for (let i = 0; i < columnDatas.length; i++) { 
             let needsGradingInfoForColumn = await getNeedsGradingInfoForColumn(courseId, columnDatas[i], cutOffDate);
             if (HasNeedsGradingInfo(needsGradingInfoForColumn))
             {
-                CourseGradingInfoForAllColumns.push(needsGradingInfoForColumn); 
+                courseGradingInfoForAllColumns.push(needsGradingInfoForColumn); 
             }
         };
-        return BuildCourseGradingInfoAsObject(CourseGradingInfoForAllColumns); 
+        return BuildCourseGradingInfoAsObject(courseGradingInfoForAllColumns); 
     }
     catch(err){return undefined;};
     
@@ -112,18 +125,22 @@ async function BuildColumnGradingInfoAsObject(columnInfo)
 async function BuildStudentDetailInfoAsObject(studentDetail)
 {
     studentName = await getUserName(studentDetail.studentId);
-    return {studentId:studentDetail.studentId, created:formatDate(studentDetail.created), student:studentName, attemptId:studentDetail.attemptId};
+    return {studentId:studentDetail.studentId, created:formatDate(studentDetail.created), 
+            student:studentName, attemptId:studentDetail.attemptId};
 }        
  
 async function getNeedsGradingInfoForColumn(courseId, columnData, cutOffDate=DAYZERO)
 {
 
     var json = await fetchJson(getURLforNeedsGradingInfoForColumn(courseId, columnData.id));
-    var result=[]
+    var result=[];
     try { 
             json.results.filter(_filterEntryCreatedOnOrAfter).                
             forEach(studentDetail=>{
-                result.push({course: courseId, column: columnData.id, columnName: columnData.name, studentId: studentDetail.userId, created: studentDetail.created, attemptId: studentDetail.id});
+                result.push({course: courseId, column: columnData.id, 
+                            columnName: columnData.name, 
+                            studentId: studentDetail.userId, created: studentDetail.created, 
+                            attemptId: studentDetail.id});
             });
             return result.sort((a,b)=>{return new Date(b.created) - new Date(a.created);});
     }
