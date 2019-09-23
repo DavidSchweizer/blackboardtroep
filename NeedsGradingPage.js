@@ -4,14 +4,19 @@ const DisplayLevelCoursesColumnsAndStudents = 2;
 
 async function DisplayCoursesThatNeedGradingForLevelInListInWindow(DisplayLevel, courseList=myCourseList, cutOffDate=DAYZERO)
 {
-    const CoursesNeedGradingTable = "CoursesNeedGradingTable";
-    var windowRef = OpenHTMLWindow("Needs Grading");
-    HtmlDocumentBodyWithHeaderAndTable(windowRef, "Courses with Grading Needs", CoursesNeedGradingTable);
-    var tableRef = windowRef.document.getElementById(CoursesNeedGradingTable);    
-    StoreDisplayLevel(tableRef, DisplayLevel);
+    const CoursesNeedGradingTable = "CoursesNeedGradingTable";    
+    var windowRef = prepareWindow("Needs Grading", "Courses with Grading Needs", CoursesNeedGradingTable);
+    var tableRef = prepareTable(windowRef, CoursesNeedGradingTable, DisplayLevel);
+    let AllGradingInfo = await getNeedsGradingInfoForCourseList(courseList, cutOffDate);
+    InsertCourseListNeedsGradingRowsForLevel(DisplayLevel, AllGradingInfo, tableRef);
+}
+
+function prepareTable(windowRef, TableName, DisplayLevel)
+{
+    var tableRef = windowRef.document.getElementById(TableName);
+    storeDisplayLevel(tableRef, DisplayLevel);
     HtmlInsertTableRow(tableRef, _HtmlCoursesNeedsGradingHeaderForLevel(DisplayLevel));
-    let json = await getNeedsGradingInfoForCourseList(courseList, cutOffDate);
-    InsertCourseListNeedsGradingRowsForLevel(DisplayLevel, json, tableRef);
+    return tableRef;
 }
 
 function _HtmlCoursesNeedsGradingHeaderForLevel(DisplayLevel)
@@ -94,7 +99,7 @@ function storeCourseData(row, data)
         row.dataset.courseData = JSON.stringify(data);
 }
 
-function StoreDisplayLevel(tableRef, DisplayLevel)
+function storeDisplayLevel(tableRef, DisplayLevel)
 {
     tableRef.dataset.level = DisplayLevel;
 }

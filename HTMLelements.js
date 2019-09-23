@@ -10,12 +10,19 @@ return '<style>'+
 '</style>';
 }
 
+function prepareWindow(WindowHeader, TableHeader, TableName)
+{
+    var windowRef = OpenHTMLWindow(WindowHeader);
+    HtmlDocumentBodyWithHeaderAndTable(windowRef, TableHeader, TableName);
+    return windowRef;
+}
+
 function OpenHTMLWindow(windowTitle) 
 {
-    var w = window.open("");
+    var windowRef = window.open("");
     var html1 = '<head><title>'+windowTitle+'</title>'+ GetStyleAsString() + '</head>';
-    w.document.head.innerHTML = html1; 
-    return w;
+    windowRef.document.head.innerHTML = html1; 
+    return windowRef;
 }
 
 function HtmlInsertTableRow(tableRef, tableHTML)

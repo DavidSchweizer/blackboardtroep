@@ -1,11 +1,16 @@
 function DisplayCourseListInWindow(Id="david.schweizer@nhlstenden.com")
 {
     const CourseListTable = "CourseListTable";
-    var windowRef = OpenHTMLWindow("Course List");
-    HtmlDocumentBodyWithHeaderAndTable(windowRef, "Courses for ID: "+Id, CourseListTable)
-    var tableRef = windowRef.document.getElementById(CourseListTable);
-    HtmlInsertTableRow(tableRef, HtmlTableHeadingRow(["CourseId", "Course Name", "Role"]));
+    var windowRef = prepareWindow("Course List", "Courses for ID: "+Id, CourseListTable);    
+    var tableRef = prepareTable(windowRef, CourseListTable, ["CourseId", "Course Name", "Role"]);
     getAndInsertCoursesInformation(Id, tableRef);
+}
+
+function prepareTable(windowRef, TableName, TableHeaderArray)
+{
+    var tableRef = windowRef.document.getElementById(TableName);
+    HtmlInsertTableRow(tableRef, HtmlTableHeadingRow(TableHeaderArray));    
+    return tableRef;
 }
 
 async function getAndInsertCoursesInformation(userName, tableRef)
