@@ -43,7 +43,6 @@ function HtmlTableRowHeadingElement(headingStr)
 }
 function HtmlTableHeadingRow(ArrayOfHeadingStrings)
 {
-    console.log("Joepie: "+ JSON.stringify(ArrayOfHeadingStrings));
     let result = '<tr>';
     ArrayOfHeadingStrings.forEach(headingStr=>{result = result + HtmlTableRowHeadingElement(headingStr);})
     return result + '</tr>';
