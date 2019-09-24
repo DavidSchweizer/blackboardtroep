@@ -1,9 +1,10 @@
-function DisplayCourseListInWindow(Id="david.schweizer@nhlstenden.com")
+async function DisplayCourseListInWindow(UserName="david.schweizer@nhlstenden.com")
 {
     const CourseListTable = "CourseListTable";
-    var windowRef = prepareWindow("Course List", "Courses for ID: "+Id, CourseListTable);    
+    var windowRef = prepareWindow("Course List", "Courses for ID: "+UserName, CourseListTable);    
     var tableRef = prepareTable(windowRef, CourseListTable, ["CourseId", "Course Name", "Role"]);
-    getAndInsertCoursesInformation(Id, tableRef);
+    let CoursesInformation = await getCoursesInformation(UserName);
+    InsertCoursesInformation(CoursesInformation, tableRef);
 }
 
 function prepareTable(windowRef, TableName, TableHeaderArray)
@@ -13,19 +14,23 @@ function prepareTable(windowRef, TableName, TableHeaderArray)
     return tableRef;
 }
 
-async function getAndInsertCoursesInformation(userName, tableRef)
+async function getCoursesInformation(userName)
 {
-    let json = await getCoursesForId(userName);
-    json.sort((a,b)=>a.courseRole.localeCompare(b.courseRole))
-    .forEach(course=>{
-        getCourseName(course.courseId)
-        .then(nameStr=>
-            {
-                row = HtmlInsertTableRow(tableRef,  
-                    HtmlTableDataRow([course.courseId, nameStr, course.courseRole]));
-                storeRowData(row, course);
-            });
-        })
+    let CoursesInformation = await getCoursesForId(userName);
+    return CoursesInformation.sort((a,b)=>a.courseRole.localeCompare(b.courseRole));
+}
+
+async function InsertCoursesInformation(CoursesInformation, tableRef)
+{    
+    CoursesInformation.forEach(course=>{
+    getCourseName(course.courseId)
+    .then(nameStr=>
+        {
+            row = HtmlInsertTableRow(tableRef,  
+                HtmlTableDataRow([course.courseId, nameStr, course.courseRole]));
+            storeRowData(row, course);
+        });
+    })
 }
 
 function storeRowData(row, data)

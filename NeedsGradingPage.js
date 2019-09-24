@@ -7,40 +7,35 @@ async function DisplayCoursesThatNeedGradingForLevelInListInWindow(DisplayLevel,
     const CoursesNeedGradingTable = "CoursesNeedGradingTable";    
     var windowRef = prepareWindow("Needs Grading", "Courses with Grading Needs", CoursesNeedGradingTable);
     var tableRef = prepareTable(windowRef, CoursesNeedGradingTable, DisplayLevel);
-    let AllGradingInfo = await getNeedsGradingInfoForCourseList(courseList, cutOffDate);
-    InsertCourseListNeedsGradingRowsForLevel(DisplayLevel, AllGradingInfo, tableRef);
+    let GradingInfoForAllCourses = await getNeedsGradingInfoForCourseList(courseList, cutOffDate);
+    InsertCourseListNeedsGradingRowsForLevel(DisplayLevel, GradingInfoForAllCourses, tableRef);
 }
 
 function prepareTable(windowRef, TableName, DisplayLevel)
-{
-    var tableRef = windowRef.document.getElementById(TableName);
-    storeDisplayLevel(tableRef, DisplayLevel);
-    HtmlInsertTableRow(tableRef, _HtmlCoursesNeedsGradingHeaderForLevel(DisplayLevel));
-    return tableRef;
-}
-
-function _HtmlCoursesNeedsGradingHeaderForLevel(DisplayLevel)
 {
     const tableHeadings = [
         /* level 0 */["Course", "Needs Grading"],
         /* level 1 */["Course", "Column", "Needs Grading"],
         /* level 2 */["Course: Column", "Student", "Created"]
     ];
-    return HtmlTableHeadingRow(tableHeadings[DisplayLevel]);
+    var tableRef = windowRef.document.getElementById(TableName);
+    storeDisplayLevel(tableRef, DisplayLevel);
+    HtmlInsertTableRow(tableRef, HtmlTableHeadingRow(tableHeadings[DisplayLevel])); 
+    return tableRef;
 }
 
-function InsertCourseListNeedsGradingRowsForLevel(DisplayLevel, jsonCourseListData, tableRef)
+function InsertCourseListNeedsGradingRowsForLevel(DisplayLevel, GradingInfoForAllCourses, tableRef)
 {
-    jsonCourseListData.forEach(course=>{ InsertCourseNeedsGradingRowsForLevel(DisplayLevel, course, tableRef); });
+    GradingInfoForAllCourses.forEach(course=>{ InsertCourseNeedsGradingRowsForLevel(DisplayLevel, course, tableRef); });
 }
 
-function InsertCourseNeedsGradingRowsForLevel(DisplayLevel, jsonCourseData, tableRef)
+function InsertCourseNeedsGradingRowsForLevel(DisplayLevel, CourseGradingInfo, tableRef)
 {
     let first = true;
-    GetArrayOfHtmlForCourseNeedsGradingRows(DisplayLevel, jsonCourseData).forEach(rowStr =>{
+    GetArrayOfHtmlForCourseNeedsGradingRows(DisplayLevel, CourseGradingInfo).forEach(rowStr =>{
         row = HtmlInsertTableRow(tableRef, rowStr);
         if (first) {
-            storeCourseData(row, jsonCourseData);
+            storeCourseData(row, CourseGradingInfo);
             first = false;
         }
     });
