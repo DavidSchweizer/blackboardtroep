@@ -17,9 +17,15 @@ async function fetchJson(endpointURL)
     }
 }
 
+function getURLforCourseUsers(courseId)
+{
+    //return APIroot + "courses/"+courseId+"/users?fields=userId,name.given,name.middle,name.family,courseRoleId,lastAccessed";
+ return APIroot + "courses/"+courseId+"/users";
+}
+
 function getURLforCourseName(courseId)
 {
-return APIroot + "courses/"+courseId+"?fields=id,name";
+    return APIroot + "courses/"+courseId+"?fields=id,name";
 }
 function getURLforUserId(userName)
 {

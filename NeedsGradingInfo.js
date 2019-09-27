@@ -170,25 +170,3 @@ async function getGradeAttemptsColumns(courseId)
     }
 }
 
-async function getUserId(userName)
-{
-    let result = "not found";
-    let json = await fetchJson(getURLforUserId(userName));
-    json.results.forEach(user=>{if (userName == user.userName) result=user.id});
-    return result;
-}
-
-async function getUserName(userId)
-{
-    try {
-        let json = await fetchJson(getURLforUserName(userId));
-        let result = json.name.given + " ";
-        if (json.name.middle != undefined)
-            result  = result + json.name.middle + " ";
-        return result + json.name.family;
-    }
-    catch(err)
-    {
-        return "unknown";
-    }
-}
