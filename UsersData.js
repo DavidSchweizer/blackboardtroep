@@ -10,7 +10,7 @@ async function getUsersForCourse(courseId)
             let userName  = await getUserName(user.userId);
             results.push({courseId: courseId, courseName: courseName, 
                 user: userName, courseRole: user.courseRoleId,
-                lastAccessed: user.lastAccessed});
+                lastAccessed: user.lastAccessed, availability: user.availability});
         }
         return JSON.stringify(results);
     }
